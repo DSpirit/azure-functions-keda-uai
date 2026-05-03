@@ -17,8 +17,6 @@ param location string
 param containerAppName string
 param containerAppEnvId string
 param containerImage string
-param userAssignedIdentityId string
-param userAssignedIdentityClientId string
 param storageAccountName string
 param queueServiceUri string
 param blobServiceUri string
@@ -29,7 +27,7 @@ var usesAcrManagedIdentity = endsWith(toLower(imageRegistryServer), '.azurecr.io
 var registries = usesAcrManagedIdentity ? [
   {
     server: imageRegistryServer
-    identity: userAssignedIdentityId
+    identity: 'system'
   }
 ] : null
 
@@ -38,11 +36,7 @@ resource functionApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
   kind: 'functionapp'
   location: location
   identity: {
-    type: 'UserAssigned'
-    userAssignedIdentities: {
-      // Key must be the full resource ID of the managed identity.
-      '${userAssignedIdentityId}': {}
-    }
+    type: 'SystemAssigned'
   }
   properties: {
     managedEnvironmentId: containerAppEnvId
@@ -101,14 +95,6 @@ resource functionApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
               name: 'WorkItemsStorage__serviceUri'
               value: queueServiceUri
             }
-            // ── Managed identity ─────────────────────────────────────────────
-            // Setting AZURE_CLIENT_ID causes DefaultAzureCredential to use this
-            // specific user-assigned managed identity instead of any system-assigned
-            // or ambient credential.
-            {
-              name: 'AZURE_CLIENT_ID'
-              value: userAssignedIdentityClientId
-            }
             // ── Observability ────────────────────────────────────────────────
             {
               name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -128,3 +114,4 @@ resource functionApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
 
 output containerAppName string = functionApp.name
 output containerAppId string = functionApp.id
+output containerAppPrincipalId string = functionApp.identity.principalId

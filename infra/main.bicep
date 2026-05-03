@@ -111,6 +111,7 @@ module roleAssignments 'modules/role-assignments.bicep' = {
     storageAccountId: storage.outputs.storageAccountId
     acrId: acr.outputs.acrId
     principalId: userAssignedIdentity.properties.principalId
+    assignAcrPull: true
   }
 }
 
@@ -124,12 +125,20 @@ module functionApp 'modules/function-containerapp.bicep' = {
     containerAppName: functionAppName
     containerAppEnvId: containerAppEnv.outputs.environmentId
     containerImage: containerImage
-    userAssignedIdentityId: userAssignedIdentity.id
-    userAssignedIdentityClientId: userAssignedIdentity.properties.clientId
     storageAccountName: storage.outputs.storageAccountName
     queueServiceUri: storage.outputs.queueServiceUri
     blobServiceUri: storage.outputs.blobServiceUri
     appInsightsConnectionString: appInsights.outputs.connectionString
+  }
+}
+
+module functionAppSystemIdentityRoleAssignments 'modules/role-assignments.bicep' = {
+  name: 'deploy-functionapp-system-identity-role-assignments'
+  params: {
+    storageAccountId: storage.outputs.storageAccountId
+    acrId: acr.outputs.acrId
+    principalId: functionApp.outputs.containerAppPrincipalId
+    assignAcrPull: true
   }
 }
 

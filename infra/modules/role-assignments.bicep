@@ -15,6 +15,7 @@
 param storageAccountId string
 param acrId string
 param principalId string // Object ID of the user-assigned managed identity
+param assignAcrPull bool = true
 
 // ── Built-in role definition IDs ─────────────────────────────────────────────
 var storageQueueDataContributorRoleId = '974c5e8b-45b9-4653-ba55-5f855dd0fb88'
@@ -56,7 +57,7 @@ resource storageBlobDataOwner 'Microsoft.Authorization/roleAssignments@2022-04-0
 }
 
 // ── AcrPull ───────────────────────────────────────────────────────────────────
-resource acrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+resource acrPull 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (assignAcrPull) {
   scope: acrRef
   name: guid(acrId, principalId, acrPullRoleId)
   properties: {
