@@ -198,6 +198,22 @@ requests
 | order by timestamp desc
 ```
 
+## Create a share-safe support bundle
+
+To share diagnostics publicly (for example in GitHub issues) without exposing
+subscription/tenant/principal IDs or internal hostnames:
+
+```bash
+chmod +x scripts/create-sanitized-support-pack.sh
+
+./scripts/create-sanitized-support-pack.sh \
+  --resource-group <resource-group> \
+  --container-app ca-<envName>-func
+```
+
+The script writes a redacted bundle under `artifacts/support-pack/<timestamp>/`
+and a zip at `artifacts/support-pack/<timestamp>.zip`.
+
 ---
 
 ## Local development
