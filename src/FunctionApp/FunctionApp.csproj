@@ -21,7 +21,7 @@
     <!-- Queue Storage trigger extension for isolated worker -->
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.5.4" />
     <!-- Application Insights integration for isolated worker -->
-    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="3.1.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.23.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="2.50.0" />
     <!-- Pin OpenTelemetry.Api to the patched version to clear the transitive vulnerability warning. -->
     <PackageReference Include="OpenTelemetry.Api" Version="1.15.3" />

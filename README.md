@@ -34,6 +34,7 @@ Built with:
 │       └── role-assignments.bicep      # RBAC assignments (no secrets)
 ├── scripts/
 │   ├── deploy.sh                       # Bash deploy script
+│   ├── send-queue-message.sh           # Bash helper to enqueue a test message
 │   └── deploy.ps1                      # PowerShell deploy script
 └── README.md
 ```
@@ -154,12 +155,14 @@ chmod +x scripts/deploy.sh
 After deployment, you can enqueue messages at any time:
 
 ```bash
-az storage message put \
-  --account-name <storage-account-name> \
-  --queue-name work-items \
-  --content '{"id":"test-002","description":"Manual test"}' \
-  --auth-mode login
+./scripts/send-queue-message.sh \
+  --resource-group <resource-group> \
+  --content '{"id":"test-002","description":"Manual test"}'
 ```
+
+The script reads the storage account and queue name from the latest main Bicep deployment in the resource group. If needed, you can override them with --storage-account and --queue-name.
+
+By default, the helper sends messages with `--encoding base64` to match the queue trigger host default. Use `--raw-content` (or `--encoding none`) only if your host is configured for non-Base64 queue payloads.
 
 The container app will scale from 0 to 1+ replicas within ~30 seconds of the message arriving.
 

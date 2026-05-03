@@ -22,11 +22,20 @@ param userAssignedIdentityClientId string
 param storageAccountName string
 param queueServiceUri string
 param blobServiceUri string
-param queueName string
 param appInsightsConnectionString string
 
-resource functionApp 'Microsoft.App/containerApps@2024-03-01' = {
+var imageRegistryServer = split(containerImage, '/')[0]
+var usesAcrManagedIdentity = endsWith(toLower(imageRegistryServer), '.azurecr.io')
+var registries = usesAcrManagedIdentity ? [
+  {
+    server: imageRegistryServer
+    identity: userAssignedIdentityId
+  }
+] : null
+
+resource functionApp 'Microsoft.App/containerApps@2024-10-02-preview' = {
   name: containerAppName
+  kind: 'functionapp'
   location: location
   identity: {
     type: 'UserAssigned'
@@ -36,18 +45,18 @@ resource functionApp 'Microsoft.App/containerApps@2024-03-01' = {
     }
   }
   properties: {
-    environmentId: containerAppEnvId
+    managedEnvironmentId: containerAppEnvId
     workloadProfileName: 'Consumption'
     configuration: {
-      // No HTTP ingress — queue trigger only.
-      ingress: null
-      // Pull the container image from ACR using the managed identity (AcrPull role assigned separately).
-      registries: [
-        {
-          server: split(containerImage, '/')[0]
-          identity: userAssignedIdentityId
-        }
-      ]
+      // Keep only one active revision to avoid parallel placeholder/app revisions.
+      activeRevisionsMode: 'Single'
+      ingress: {
+        external: true
+        targetPort: 80
+        allowInsecure: false
+      }
+      // Only private ACR images need registry authentication via managed identity.
+      registries: registries
     }
     template: {
       containers: [
@@ -63,6 +72,10 @@ resource functionApp 'Microsoft.App/containerApps@2024-03-01' = {
             {
               name: 'FUNCTIONS_WORKER_RUNTIME'
               value: 'dotnet-isolated'
+            }
+            {
+              name: 'AzureWebJobsFeatureFlags'
+              value: 'EnableWorkerIndexing'
             }
             // ── Internal host storage (identity-based, no connection string) ─
             // AzureWebJobsStorage__accountName tells the Functions host which
@@ -108,26 +121,6 @@ resource functionApp 'Microsoft.App/containerApps@2024-03-01' = {
         // Scale to zero when the queue is empty; scale up as messages accumulate.
         minReplicas: 0
         maxReplicas: 10
-        rules: [
-          {
-            name: 'queue-trigger'
-            custom: {
-              // KEDA azure-queue scaler — authenticates via the managed identity.
-              type: 'azure-queue'
-              metadata: {
-                queueName: queueName
-                // Trigger a new replica for every 5 messages in the queue.
-                queueLength: '5'
-                accountName: storageAccountName
-              }
-              // Use the user-assigned managed identity for KEDA to read the queue length.
-              // BCP037: 'identity' is valid at runtime but not yet reflected in Bicep type
-              // definitions for this API version; suppress the warning.
-              #disable-next-line BCP037
-              identity: userAssignedIdentityId
-            }
-          }
-        ]
       }
     }
   }

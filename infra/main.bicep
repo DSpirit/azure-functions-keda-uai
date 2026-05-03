@@ -31,11 +31,12 @@ Use the placeholder value for the initial deployment; update after pushing the i
 param containerImage string = 'mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated10.0'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Resource names (deterministic, no randomness needed for a starter sample)
+// Resource names (deterministic and globally unique where required)
 // ─────────────────────────────────────────────────────────────────────────────
 // ACR and storage names must be globally unique lowercase alphanumeric.
-var acrName            = 'cr${envName}'
-var storageAccountName = 'st${envName}'
+var globalNameSuffix   = take(uniqueString(subscription().subscriptionId, resourceGroup().id, envName), 6)
+var acrName            = 'cr${envName}${globalNameSuffix}'
+var storageAccountName = 'st${envName}${globalNameSuffix}'
 var logWorkspaceName   = 'log-${envName}'
 var appInsightsName    = 'appi-${envName}'
 var containerEnvName   = 'cae-${envName}'
@@ -128,7 +129,6 @@ module functionApp 'modules/function-containerapp.bicep' = {
     storageAccountName: storage.outputs.storageAccountName
     queueServiceUri: storage.outputs.queueServiceUri
     blobServiceUri: storage.outputs.blobServiceUri
-    queueName: storage.outputs.queueName
     appInsightsConnectionString: appInsights.outputs.connectionString
   }
 }
