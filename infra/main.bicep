@@ -28,7 +28,7 @@ Full container image reference including registry, repository and tag.
 Example: myacr.azurecr.io/functionapp:latest
 Use the placeholder value for the initial deployment; update after pushing the image.
 ''')
-param containerImage string = 'mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated9.0'
+param containerImage string = 'mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated10.0'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Resource names (deterministic, no randomness needed for a starter sample)
