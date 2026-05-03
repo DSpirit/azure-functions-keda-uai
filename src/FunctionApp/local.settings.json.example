@@ -1,0 +1,17 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+
+    // For local development with Azurite (local storage emulator)
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+
+    // Identity-based queue connection for the WorkItemProcessor trigger.
+    // Locally, use the emulator URI. In Azure, this is set to the real storage account.
+    // The WorkItemsStorage prefix must match the Connection property in QueueTrigger.
+    "WorkItemsStorage__serviceUri": "http://127.0.0.1:10001/devstoreaccount1",
+
+    // Application Insights — leave empty for local dev (telemetry won't be sent)
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": ""
+  }
+}
